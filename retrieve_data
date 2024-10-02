@@ -1,0 +1,125 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
+import time
+
+# Login credentials
+username = 'username'
+password = 'password'
+
+# Set up Chrome options for headless mode
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+chrome_options.add_argument(f'user-agent={user_agent}')
+
+# Initialize the WebDriver with the specified options
+driver = webdriver.Chrome(options=chrome_options)
+driver.set_window_size(1080, 800)  # Set the size of the window
+
+# Navigate to your Depop shop
+login_url = 'https://www.depop.com/login/'
+driver.get(login_url)
+
+# Bypass cookie banner to interact with website
+try:
+    # Locate the "Accept" button using its data-testid attribute
+    cookie_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[@data-testid='cookieBanner__acceptAllButton']"))
+    )
+    cookie_button.click()  # Click the accept button
+    print("Cookie banner accepted.")
+
+except Exception as e:
+    print("No cookie banner found or unable to click the button:", e)
+
+# Step 1: Find the username and password fields and the login button
+WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.ID, 'username__input'))
+)
+
+# Step 2: Enter your credentials
+username_input = driver.find_element(By.ID, 'username__input')
+username_input.send_keys(username)
+
+password_input = driver.find_element(By.ID, 'password__input')
+password_input.send_keys(password)
+
+# Step 3: Click the login button
+login_button = driver.find_element(By.XPATH, "//button[@data-testid='login__cta']")  # Use the data-testid to locate the button
+login_button.click()
+
+# Step 4: Prompt for 2FA code
+two_fa_code = input("Please enter your 2FA code: ")  # Wait for user input
+
+# Step 5: Find the 2FA input field and enter the code
+try:
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//input[@data-testid='verification-code__input-0']"))  # Update with the actual selector for 2FA input
+    )
+    two_fa_input = driver.find_element(By.XPATH, "//input[@data-testid='verification-code__input-0']")  # Use the correct selector
+    two_fa_input.send_keys(two_fa_code)  # Enter the 2FA code
+    
+    # Optionally click the submit button for the 2FA
+    submit_button = driver.find_element(By.XPATH, "//button[@data-testid='mfa__otp-submit']")  # Update with the actual selector for 2FA submission
+    submit_button.click()
+except Exception as e:
+    print("Error while entering 2FA code:", e)
+
+# Wait for a few seconds after entering the 2FA code
+time.sleep(3)  # Adjust if needed to ensure the next page loads completely
+
+# Now navigate to your shop's private page
+shop_url = "https://www.depop.com/madvirgies/"  # Your shop's URL
+driver.get(shop_url)
+
+# Step 4: Data scraping logic (similar to previous examples)
+item_data = []
+previous_height = driver.execute_script("return document.body.scrollHeight")  # Get initial height
+
+while True:
+    # Wait for item containers to load
+    item_containers = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CLASS_NAME, 'styles_listItem__uQkGy'))
+    )
+
+    # Extract data from the current batch of items
+    for item in item_containers:
+        try:
+            # Extract the item link
+            link_element = item.find_element(By.CSS_SELECTOR, 'a[data-testid="extendedLinkAnchor"]')
+            link = link_element.get_attribute('href')
+            
+            # Extract the price
+            price_element = item.find_element(By.CLASS_NAME, 'styles_price__H8qdh')
+            price = price_element.text.strip()
+
+            # Append to data list
+            item_data.append({'URL': link, 'Price': price})
+        except Exception as e:
+            print(f"Error extracting item data: {e}")
+
+    # Scroll down to load more items
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(2)  # Wait for items to load
+
+    # Get the new height of the page after scrolling
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    
+    # If the height hasn't changed, we've reached the end of the list
+    if new_height == previous_height:
+        break  # Exit the loop if no new items are loaded
+    
+    previous_height = new_height  # Update the height for the next iteration
+
+# Define the path to save the CSV file on the desktop
+desktop_path = r'C:\Users\legat\OneDrive\Desktop\depop_item_details_complete.csv'  # Use your desktop path
+
+# Save the data to a CSV file
+df = pd.DataFrame(item_data)
+df.to_csv(desktop_path, index=False)
+
+# Close the driver
+driver.quit()
