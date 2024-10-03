@@ -11,7 +11,6 @@ password = 'password'
 
 # Set up Chrome options for headless mode
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 chrome_options.add_argument(f'user-agent={user_agent}')
 
@@ -40,31 +39,42 @@ WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.ID, 'username__input'))
 )
 
+time.sleep(2.2)
+
 # Step 2: Enter your credentials
 username_input = driver.find_element(By.ID, 'username__input')
 username_input.send_keys(username)
+
+time.sleep(1.7)
 
 password_input = driver.find_element(By.ID, 'password__input')
 password_input.send_keys(password)
 
 # Step 3: Click the login button
 login_button = driver.find_element(By.XPATH, "//button[@data-testid='login__cta']")  # Use the data-testid to locate the button
+
+time.sleep(1.2)
+
 login_button.click()
 
 # Step 4: Prompt for 2FA code
 two_fa_code = input("Please enter your 2FA code: ")  # Wait for user input
 
+time.sleep(26.4)
+
 # Step 5: Find the 2FA input field and enter the code
 try:
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//input[@data-testid='verification-code__input-0']"))  # Update with the actual selector for 2FA input
-    )
-    two_fa_input = driver.find_element(By.XPATH, "//input[@data-testid='verification-code__input-0']")  # Use the correct selector
-    two_fa_input.send_keys(two_fa_code)  # Enter the 2FA code
+    # Loop through the six inputs and enter each digit of the 2FA code
+    for i in range(6):
+        input_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, f"//input[@data-testid='verification-code__input-{i}']"))
+        )
+        input_field.send_keys(two_fa_code[i])  # Enter the corresponding digit
     
     # Optionally click the submit button for the 2FA
-    submit_button = driver.find_element(By.XPATH, "//button[@data-testid='mfa__otp-submit']")  # Update with the actual selector for 2FA submission
+    submit_button = driver.find_element(By.XPATH, "//button[@data-testid='mfa__otp-submit']")
     submit_button.click()
+    
 except Exception as e:
     print("Error while entering 2FA code:", e)
 
@@ -83,6 +93,7 @@ while True:
     # Wait for item containers to load
     item_containers = WebDriverWait(driver, 10).until(
         EC.presence_of_all_elements_located((By.CLASS_NAME, "ReceiptsList-styles__ReceiptListWrapper-sc-55d3004f-1 erxsdC"))
+    )
     # Extract data from the current batch of items
     for item in item_containers:
         
