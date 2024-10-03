@@ -72,8 +72,8 @@ except Exception as e:
 time.sleep(3)  # Adjust if needed to ensure the next page loads completely
 
 # Now navigate to your shop's private page
-shop_url = "https://www.depop.com/madvirgies/"  # Your shop's URL
-driver.get(shop_url)
+hub_url = "https://www.depop.com/sellinghub/sold-items/"  
+driver.get(hub_url)
 
 # Step 4: Data scraping logic (similar to previous examples)
 item_data = []
@@ -82,22 +82,51 @@ previous_height = driver.execute_script("return document.body.scrollHeight")  # 
 while True:
     # Wait for item containers to load
     item_containers = WebDriverWait(driver, 10).until(
-        EC.presence_of_all_elements_located((By.CLASS_NAME, 'styles_listItem__uQkGy'))
-    )
-
+        EC.presence_of_all_elements_located((By.CLASS_NAME, "ReceiptsList-styles__ReceiptListWrapper-sc-55d3004f-1 erxsdC"))
     # Extract data from the current batch of items
     for item in item_containers:
+        
         try:
-            # Extract the item link
-            link_element = item.find_element(By.CSS_SELECTOR, 'a[data-testid="extendedLinkAnchor"]')
-            link = link_element.get_attribute('href')
-            
-            # Extract the price
-            price_element = item.find_element(By.CLASS_NAME, 'styles_price__H8qdh')
-            price = price_element.text.strip()
+            # Get the sold date (contained within the span with 'Sold on')
+            date_element = item.find_element(By.XPATH, ".//p[contains(text(), 'Sold on')]")
 
-            # Append to data list
-            item_data.append({'URL': link, 'Price': price})
+            date = date_element.find_elements(By.TAG_NAME, 'span')[-1].text.strip()
+            location = item.find_elements(By.CLASS_NAME, "index-styles__LocationDetails-sc-971ea662-3 iUKcNd")[-1].text
+
+
+            item_image = item.find_element(By.CLASS_NAME, "ImageStack-styles__Container-sc-81f7be5e-0 kEAKhX")
+            item_image.click()
+
+            item_receipts = WebDriverWait(driver, 10).until(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "styles__ProductLink-sc-233ee08-7 eGrPtP"))
+            )
+            for item_receipt in item_receipts:
+                try:
+                    # Extract item image
+                    img_link = item_receipt.find_element(By.TAG_NAME, 'img').get_attribute('src')
+
+                    # Extract secondary information
+                    info_tag = item_receipt.find_element(By.CLASS_NAME, "styles__ProductInformation-sc-233ee08-2 iEDEu").find_elements(By.TAG_NAME, 'p')
+
+                    description = info_tag[0].text
+                    size = info_tag[1].text
+                    price_listed = info_tag[2].text
+                    price_sold = info_tag[3].text
+                    brand = info_tag[4].text
+                    # Collect data
+                    item_data.append({
+                        'Image': img_link,
+                        'Description': description,
+                        'Price listed': price_listed,
+                        'Price sold': price_sold,
+                        'Size': size,
+                        'Brand': brand,
+                        'Date': date,
+                        'Location': location
+                    })
+                except Exception as e:
+                    print(f"Error extracting receipt data: {e}")
+
         except Exception as e:
             print(f"Error extracting item data: {e}")
 
