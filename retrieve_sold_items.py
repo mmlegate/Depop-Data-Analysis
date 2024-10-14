@@ -19,7 +19,7 @@ chrome_options.add_argument(f'user-agent={user_agent}')
 driver = webdriver.Chrome(options=chrome_options)
 driver.set_window_size(1080, 800)  # Set the size of the window
 
-# Navigate to your Depop shop
+# Navigate to Depop login page
 login_url = 'https://www.depop.com/login/'
 driver.get(login_url)
 
