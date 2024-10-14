@@ -13,7 +13,7 @@ chrome_options.add_argument(f'user-agent={user_agent}')
 
 # Initialize the WebDriver with the specified options
 driver = webdriver.Chrome(options=chrome_options)
-driver.set_window_size(1080, 800)  # Set the size of the window
+driver.set_window_size(1080, 1080)  # Set the size of the window
 
 # Navigate to your Depop shop
 url = "https://www.depop.com/SHOP_NAME/" 
@@ -56,8 +56,8 @@ while True:
     
 
     # Scroll down by a small amount to load more items
-    driver.execute_script("window.scrollBy(0, 500);")  # Scroll down in increments
-    time.sleep(rand.uniform(4, 6))  # Wait for items to load
+    driver.execute_script("window.scrollBy(0, 1000);")  # Scroll down in increments
+    time.sleep(rand.uniform(6, 8))  # Wait for items to load
 
 item_data = []
 # Wait for item containers to load
@@ -89,9 +89,56 @@ for item in item_containers:
         except Exception as e:
             print(f"Error extracting item data: {e}")
 
+time.sleep(rand.uniform(4, 6))
+
 # Save the data to a CSV file
 df = pd.DataFrame(item_data)
-df.to_csv(r'\Your\Path\Here', index=False)
+df = df.iloc[2:] # First two posts are promotional, not products. Adjust as needed
+
+other_data = []
+
+for item_url in df['Item URL']:
+
+    driver.get(item_url)
+    wrapper = WebDriverWait(driver, 30).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'styles__ContentWrapper-sc-b6f63023-5'))
+    )
+    time.sleep(rand.uniform(4, 7))
+    try: 
+        show_more_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'styles__ShowMoreButton-sc-d367c36f-4'))
+        )
+        show_more_button.click()
+
+    except:
+        print("No 'Show More' button found or unable to click.")
+
+    try:
+        info_element = wrapper.find_elements(By.CLASS_NAME, 'ProductAttributes-styles__Attribute-sc-303d66c3-0')
+        if len(info_element) < 6 and len(info_element[3].text) > 9:
+            size = 'One Size'
+            brand = info_element[-1].text
+        elif len(info_element) < 6:
+            size = info_element[3].text
+            brand = 'Other'
+        else:
+            size = info_element[3].text
+            brand = info_element[-1].text
+
+        description = wrapper.find_element(By.XPATH, ".//div[@data-testid='product__description']").text
+        other_data.append({'Size': size, 'Brand': brand, 'Description': description})
+        time.sleep(rand.uniform(2, 5))
+
+    except Exception as e:
+        print(f"Error extracting item data from {item_url}: {e}")
+        break
+
+other_df = pd.DataFrame(other_data)
+df = df.drop(columns=['Item URL'])
+df = pd.concat([df.reset_index(drop=True), other_df.reset_index(drop=True)], axis=1)
+
+df.to_csv(r'C:\Your\Path\Here', index=False)
+print("Dataframe saved!")
 
 # Close the driver
 driver.quit()
