@@ -23,7 +23,7 @@ driver.set_window_size(1080, 800)  # Set the size of the window
 login_url = 'https://www.depop.com/login/'
 driver.get(login_url)
 
-time.sleep(rand.uniform(2, 3))
+time.sleep(rand.uniform(2, 3)) # Pause to appease Depop servers
 
 # Bypass cookie banner to interact with website
 try:
@@ -42,13 +42,13 @@ WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.ID, 'username__input'))
 )
 
-time.sleep(rand.uniform(2, 5))
+time.sleep(rand.uniform(2, 5)) # Pause to appease Depop servers
 
 # Enter your credentials
 username_input = driver.find_element(By.ID, 'username__input')
 username_input.send_keys(username)
 
-time.sleep(rand.uniform(2, 5))
+time.sleep(rand.uniform(2, 5)) # Pause to appease Depop servers
 
 password_input = driver.find_element(By.ID, 'password__input')
 password_input.send_keys(password)
@@ -56,14 +56,14 @@ password_input.send_keys(password)
 # Click the login button
 login_button = driver.find_element(By.XPATH, "//button[@data-testid='login__cta']")  # Use the data-testid to locate the button
 
-time.sleep(rand.uniform(2, 5))
+time.sleep(rand.uniform(2, 5)) # Pause to appease Depop servers
 
 login_button.click()
 
 # Prompt for 2FA code
 two_fa_code = input("Please enter your 2FA code: ")  # Wait for user input
 
-time.sleep(rand.uniform(20, 30))
+time.sleep(rand.uniform(20, 30)) # Pause to allow you to enter code
 
 # Find the 2FA input field and enter the code
 try:
@@ -81,7 +81,7 @@ try:
 except Exception as e:
     print("Error while entering 2FA code:", e)
 
-time.sleep(rand.uniform(2, 5))
+time.sleep(rand.uniform(2, 5)) # Pause to appease Depop servers
 
 # Directly navigate to the hub URL in the same tab
 hub_url = "https://www.depop.com/sellinghub/sold-items/"
@@ -126,6 +126,7 @@ while True:
     for item in item_containers:
 
         item_count += 1
+
         try:
             date_element = item.find_element(By.XPATH, ".//div[@data-testid='receipt__sold_on']")
             date = date_element.find_elements(By.TAG_NAME, 'span')[-1].text.strip()
@@ -143,9 +144,11 @@ while True:
 
                     # Extract secondary information
                     info_tag = item_receipt.find_element(By.CLASS_NAME, "styles__ProductInformation-sc-233ee08-2").find_elements(By.TAG_NAME, 'p')
+
+                    # info_tag varies based on item type and whether its discounted
                     if len(info_tag) < 4:
                         description = info_tag[0].text
-                        size = 'N/A'
+                        size = 'One Size'
                         price_listed = info_tag[1].text
                         price_sold = info_tag[1].text
                         brand = info_tag[2].text
@@ -173,7 +176,7 @@ while True:
                         'Date': date,
                         'Location': location
                     })
-                    time.sleep(rand.uniform(2, 5))
+                    time.sleep(rand.uniform(2, 5)) # Pause to appease Depop servers
 
                 except Exception as e:
                     print(f"Error extracting receipt data: {e}")
