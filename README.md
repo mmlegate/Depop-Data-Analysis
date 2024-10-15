@@ -32,7 +32,7 @@ To run this project, you’ll need the following Python libraries:
    - Pandas   
 ## How to Run the Project
 ### 1. Data Preparation:
-The scraping module is defined in retrieve_data.py which is currently set to extract the link to the top image, the description, price listed, price sold, size, brand, date sold, location of sale (although note that the last two columns are dropped during processing). Then, as we want to avoid making requests to Depop's site, the images are saved to Drive in the save_images_to_drive.ipynb. Remaining preprocessing is handled in depop_price_cnn.py and should be tailored/modified for the dataset being used on the neural network.
+The scraping module is defined in retrieve_sold_items.py which is currently set to extract the link to the top image, the description, price listed, price sold, size, brand, date sold, location of sale (although note that the last two columns are dropped during processing). Then, as we want to avoid making requests to Depop's site, the images are saved to Drive in the save_images_to_drive.ipynb. Remaining preprocessing is handled in depop_price_cnn.py and should be tailored/modified for the dataset being used on the neural network.
 
 ### 2. Custom Transformer
 The custom transformer is based on a pre-trained BERT model to process item descriptions. It is extended with transformer encoder layers and fully connected layers for text classification tasks.
