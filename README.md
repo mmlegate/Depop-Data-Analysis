@@ -78,10 +78,9 @@ plt.plot(val_accuracy_list, label='Validation MAPE')
 plt.show()
 ```
 ## Future Improvements
-The CNN-BERT model is currently running on 41% error, which isn't too great. Note that this is according to my dataset of shop sales, which only amounts to about 450. Over time, more sales should be used for training the neural network.
- - Hyperparameter Tuning: Experiment with different learning rates, batch sizes, and dropout rates.
+The CNN-BERT model is currently running on 33% error, which isn't too great. Note that this is according to my dataset of shop sales, which only amounts to about 450. Over time, more sales should be used for training the neural network.
  - Data Augmentation: Augment the dataset with more examples or use augmentation techniques for image data.
- - BERT Fine-Tuning: Currently, the BERT model is frozen, but you could enable fine-tuning of BERT's layers to improve performance on your specific dataset.
+ - Deploy model: Ensure trained model is accessible for other tools, such as Power BI
 ## Acknowledgments
  - Depop for supplying sellers with shop stats
  - Hugging Face Transformers for providing the pre-trained BERT model.
